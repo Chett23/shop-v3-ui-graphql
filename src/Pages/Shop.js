@@ -6,40 +6,57 @@ import { } from 'react-router-dom';
 import styled from 'styled-components';
 import Col from '../Components/Col';
 import Row from '../Components/Row';
-import Title from '../Components/Title';
 import Text from '../Components/Text';
+import Title from '../Components/Title';
 import ShopItemThumbnail from '../Components/ShopItemThumbnail';
 import CartItemThumbnail from '../Components/CartItemThumbnail';
 
 // project specific methods/functions
 import { getItems } from '../Data/items';
-import { getCart } from '../Data/Cart';
+import { getCart, addToCart, removeFromCart } from '../Data/Cart';
 
 const MainCont = styled(Row)`
   width: 80%;
-  height: 100vh;
   margin: 0 auto;
+  justify-items: space-between;
 `;
 
 const Store = styled(Row)`
   width: auto;
-  border: 1px solid black;
-  margin 5px;
+  border-radius: 10px;
+  box-shadow: 0px 0px 5px grey;
+  margin 20px;
+  justify-content: center;
 `;
 
 const Cart = styled(Row)`
-  width: 300px;
-  border: 1px solid black;
-  margin 5px;
+  width: auto;
+  box-shadow: 0px 0px 5px grey;
+  border-radius: 10px;
+  margin 20px;
+  justify-content: center;
 `;
 
 const SectionTitle = styled(Text)`
+  width: 100%;
   text-align: center;
 `;
 
-function Shop() {
+
+function Shop({ showCart }) {
   const [items, setItems] = useState([])
   const [cart, setCart] = useState([])
+
+  const addItemToCart = ({ name, price, url, _id, qty }) => () => {
+    const item = { name: name, price: price, url: url, _id: _id }
+    addToCart(item)
+      .then(() => getCart().then((cart) => setCart(cart)))
+  }
+
+  const removeItemFromCart = ({ _id }) => () => {
+    removeFromCart(_id)
+      .then(() => getCart().then((cart) => setCart(cart)))
+  }
 
   useEffect(() => {
     getItems()
@@ -59,18 +76,24 @@ function Shop() {
           <Col>
             <SectionTitle>Store</SectionTitle>
             <Row>
-              {items.map((item, i) => <ShopItemThumbnail key={i} item={item}/>)}
+              {items.map((item, i) => <ShopItemThumbnail key={i} item={item} func={() => addItemToCart(item)} />)}
             </Row>
           </Col>
         </Store>
-        <Cart>
-          <Col>
-            <SectionTitle>Cart</SectionTitle>
-            <Row>
-              {cart.map((item, i) => <CartItemThumbnail key={i} item={item}/>)}
-            </Row>
-          </Col>
-        </Cart>
+        {showCart &&
+          <Cart>
+            <Col>
+              <SectionTitle>Cart</SectionTitle>
+              <Row>
+                {
+                  cart.length ?
+                  cart.map((item, i) => <CartItemThumbnail key={i} item={item} func={() => removeItemFromCart(item)} />)
+                  : <Title>Nothing in your Cart</Title>
+                }
+              </Row>
+            </Col>
+          </Cart>
+        }
       </MainCont>
     </Col>
   );
