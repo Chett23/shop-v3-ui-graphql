@@ -1,6 +1,5 @@
 // premade packages
 import React, { useState, useEffect } from 'react';
-import { } from 'react-router-dom';
 
 // project specific Components
 import styled from 'styled-components';
@@ -12,7 +11,7 @@ import ShopItemThumbnail from '../Components/ShopItemThumbnail';
 import CartItemThumbnail from '../Components/CartItemThumbnail';
 
 // project specific methods/functions
-import { getItems } from '../Data/items';
+import { getItems } from '../Data/Items';
 import { getCart, addToCart, removeFromCart } from '../Data/Cart';
 
 const MainCont = styled(Row)`
@@ -46,26 +45,34 @@ const SectionTitle = styled(Text)`
 function Shop({ showCart }) {
   const [items, setItems] = useState([])
   const [cart, setCart] = useState([])
+  // const [inStock, setInstock] = useState(true)
 
-  const addItemToCart = ({ name, price, url, _id, qty }) => () => {
-    const item = { name: name, price: price, url: url, _id: _id }
+  const addItemToCart = ({ name, price, url, _id, stock }) => () => {
+    const item = { name, price, url, _id, stock }
     addToCart(item)
-      .then(() => getCart().then((cart) => setCart(cart)))
+      .then(() => {
+        getCart().then((cart) => setCart(cart))
+        getItems().then(items => setItems(items))
+      })
   }
 
   const removeItemFromCart = ({ _id }) => () => {
     removeFromCart(_id)
-      .then(() => getCart().then((cart) => setCart(cart)))
+      .then(() => getCart().then((cart) => {
+        let item = cart.find(item => item._id === _id)
+        if (item.stock  <= 0) {}
+        setCart(cart)
+      }))
   }
 
   useEffect(() => {
     getItems()
       .then((items) => {
-        setItems(items)
+        setItems(items || [])
       })
     getCart()
       .then(cart => {
-        setCart(cart)
+        setCart(cart || [])
       })
   }, []);
 

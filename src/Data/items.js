@@ -1,5 +1,5 @@
 export const getItems = () => 
-  fetch("http://localhost:5000/items")
+  fetch("http://localhost:8080/items")
   .then(items => {
     return items.json()
   }).catch((err) => {
@@ -7,14 +7,14 @@ export const getItems = () =>
   })
 
 export const addToInventory = (item) => 
-  fetch('http://localhost:5000/items', {
+  fetch('http://localhost:8080/items', {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify(item),
   }).then(inventory => inventory)
 
 export const RemoveFromInventory = (id) =>
-  fetch(`http://localhost:5000/items/${id}`,{
+  fetch(`http://localhost:8080/items/${id}`,{
   method: "DELETE"
   })
   .then(inventory => inventory)

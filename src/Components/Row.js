@@ -1,7 +1,9 @@
 import styled from 'styled-components';
 
-export default styled.div`
+let Row = styled.div`
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
 `;
+
+export default Row;

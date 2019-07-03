@@ -1,16 +1,17 @@
 export const getCart = () => 
-  fetch('http://localhost:5000/cart')
+  fetch('http://localhost:8080/cart')
   .then(cart => cart.json())
 
 export const addToCart = (item) => 
-  fetch('http://localhost:5000/cart', {
+  fetch('http://localhost:8080/cart', {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify(item),
-  }).then(cart => cart)
+  })
+  .then(cart => cart)
 
 export const removeFromCart = (id) =>
-  fetch(`http://localhost:5000/cart/${id}`,{
+  fetch(`http://localhost:8080/cart/${id}`,{
     method: "DELETE",
   })
   .then(cart => cart)
