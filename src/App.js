@@ -49,7 +49,7 @@ const NavTitle = styled(Title)`
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false)
-  const [cartView, setCartView] = useState(true)
+  const [cartView, setCartView] = useState(false)
 
 
 
