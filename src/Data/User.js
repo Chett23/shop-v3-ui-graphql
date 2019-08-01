@@ -1,5 +1,5 @@
 export const login = (credentials) => new Promise((resolve, reject) => {
-  fetch(`http://shop-v2-helio.herokuapp.com/login`, {
+  fetch(`https://shop-v2-helio.herokuapp.com/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -14,7 +14,7 @@ export const login = (credentials) => new Promise((resolve, reject) => {
 })
 
 export const createUser = (user) => new Promise((resolve, reject) => {
-  fetch(`http://shop-v2-helio.herokuapp.com/login/create`, {
+  fetch(`https://shop-v2-helio.herokuapp.com/login/create`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -28,7 +28,7 @@ export const createUser = (user) => new Promise((resolve, reject) => {
 })
 
 export const getUsers = () =>
-  fetch("http://shop-v2-helio.herokuapp.com/users")
+  fetch("https://shop-v2-helio.herokuapp.com/users")
     .then(items => {
       return items.json()
     }).catch((err) => {
@@ -36,13 +36,13 @@ export const getUsers = () =>
     })
 
 export const RemoveUser = (id) =>
-  fetch(`http://shop-v2-helio.herokuapp.com/users/${id}`, {
+  fetch(`https://shop-v2-helio.herokuapp.com/users/${id}`, {
     method: "DELETE"
   })
     .then(users => users)
 
 export const changePass = (user) => new Promise((resolve, reject) => {
-  fetch(`http://shop-v2-helio.herokuapp.com/login/users/password-reset`, {
+  fetch(`https://shop-v2-helio.herokuapp.com/login/users/password-reset`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",

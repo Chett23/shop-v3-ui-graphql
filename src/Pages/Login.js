@@ -75,7 +75,7 @@ export default function Login({loggedIn}) {
     e.preventDefault();
 
     let user = { username: usrname, password }
-
+    console.log(user)
     login(user)
       .then(user => {
         sessionStorage.setItem("user", JSON.stringify(user))
