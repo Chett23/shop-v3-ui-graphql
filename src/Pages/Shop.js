@@ -12,7 +12,6 @@ import Title from '../Components/Title';
 import ItemThumbnail from '../Components/ItemThumbnail';
 
 // project specific methods/functions
-import { getItems } from '../Data/Items';
 import { getCart, addToCart, removeFromCart } from '../Data/Cart';
 
 const MainCont = styled(Row)`
@@ -53,7 +52,6 @@ function Shop({ showCart }) {
     addToCart(item)
       .then(() => {
         getCart().then((cart) => setCart(cart))
-        getItems().then(items => setItems(items))
       })
   }
 
@@ -67,10 +65,6 @@ function Shop({ showCart }) {
   }
 
   useEffect(() => {
-    getItems()
-      .then((items) => {
-        setItems(items || [])
-      })
     getCart()
       .then(cart => {
         setCart(cart || [])
