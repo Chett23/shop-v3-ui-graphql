@@ -8,7 +8,7 @@ import Text from '../Components/Text';
 import Title from '../Components/Title';
 import Button from '../Components/Button';
 
-import { getItems, addToInventory, RemoveFromInventory } from '../Data/Items';
+import {getItems, addToInventory, RemoveFromInventory} from '../Data/Items';
 import { getUsers, RemoveUser, createUser } from '../Data/User';
 
 

@@ -22,14 +22,14 @@ const ButtonDis = styled(Button)`
 `;
 
 
-export default function ItemThumbnail({ item: { name, price, url, _id, stock }, func }) {
+export default function ItemThumbnail({ item: { name, price, imgUrl, _id, stock }, func }) {
   return (
     <Thumbnail>
       <Col>
         <TextSmall>{`Name: ${name}`}</TextSmall>
         <TextSmall>{`Price: $${price}`}</TextSmall>
       </Col>
-      <img style={{ width: 150, height: 150 }} src={url} alt='' />
+      <img style={{ width: 150, height: 150 }} src={imgUrl} alt='' />
       {stock < 1 ? <ButtonDis disabled>Temporarily out of stock</ButtonDis> : <Button onClick={func(_id)}>Add to Cart</Button>}
     </Thumbnail>
   )

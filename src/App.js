@@ -1,11 +1,10 @@
 // premade packages
 import React, { useState, useEffect } from 'react';
 import {
-  BrowserRouter as Router,
+  // BrowserRouter as Router,
   NavLink,
   Switch,
   Route,
-  Redirect
 } from 'react-router-dom';
 import styled from 'styled-components';
 // import {ApolloProvider} from 'react-apollo'
@@ -59,8 +58,7 @@ function App() {
   }, [loggedIn])
 
   return (
-    <Col className="App">
-      <Router>
+    <Col>
         <HeadBar>
           <NavTitleLink to='/' >Home</NavTitleLink>
           <Row>
@@ -77,7 +75,6 @@ function App() {
           <Route path='/admin/login/password/reset' component={Reset} />
           <Route exact path='/easter-eggs/tacos' component={Tacos} />
         </Switch>
-      </Router>
     </Col>
   );
 }
