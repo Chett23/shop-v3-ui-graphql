@@ -10,6 +10,8 @@ import Button from '../Components/Button';
 
 import {getItems, addToInventory, RemoveFromInventory} from '../Data/Items';
 import { getUsers, RemoveUser, createUser } from '../Data/User';
+import { Query } from 'react-apollo';
+import gql from 'graphql-tag';
 
 
 // Styled Components in AdminForm
@@ -165,7 +167,7 @@ export default function Admin({ loggedIn }) {
   }
 
   const handleLoggout = () => {
-    sessionStorage.removeItem('user')
+    sessionStorage.removeItem('userToken')
     setLoading(false)
     setUser('')
   }
@@ -212,7 +214,7 @@ export default function Admin({ loggedIn }) {
   }
 
   useEffect(() => {
-    let user = JSON.parse(sessionStorage.getItem('user'))
+    let user = sessionStorage.getItem('userToken')
     if (user) {
       setUser(user);
       setLoading(false)
@@ -284,45 +286,77 @@ export default function Admin({ loggedIn }) {
         <Cont>
           <AdminFormTitle>Current Inventory</AdminFormTitle>
           <ListCont>
-            {items.map((item, i) =>
-              <ItemDiv key={i}>
-                <ItemContL>
-                  <Text>{`Name: ${item.name}`}</Text>
-                  <Text>{`Price: ${item.price}`}</Text>
-                </ItemContL>
-                <ItemContC>
-                  <Text>{`qty: ${item.stock}`}</Text>
-                  <Text>{`Product Id: ${item._id}`}</Text>
-                </ItemContC>
-                <ItemContR>
-                  <Btn onClick={handleEdit(item._id)}>Edit</Btn>
-                  <Btn onClick={handleRemove(item._id)}>Remove</Btn>
-                </ItemContR>
-              </ItemDiv>
-            )}
+            <Query query={gql`
+            {
+              inventory{
+                name
+                price
+                id
+                stock
+              }
+            }
+            `}>
+              {({ loading, error, data }) => {
+                if (loading) return <Title>loading . . .</Title>
+                if (error) return error
+
+                return data.inventory.map((item, i) =>
+                <ItemDiv key={i}>
+                  <ItemContL>
+                    <Text>{`Name: ${item.name}`}</Text>
+                    <Text>{`Price: ${item.price}`}</Text>
+                  </ItemContL>
+                  <ItemContC>
+                    <Text>{`qty: ${item.stock}`}</Text>
+                    <Text>{`Product Id: ${item.id}`}</Text>
+                  </ItemContC>
+                  <ItemContR>
+                    <Btn onClick={handleEdit(item.id)}>Edit</Btn>
+                    <Btn onClick={handleRemove(item.id)}>Remove</Btn>
+                  </ItemContR>
+                </ItemDiv>
+              )
+              }}
+            </Query>
           </ListCont>
         </Cont>
         <Cont>
           <AdminFormTitle>Current Admins</AdminFormTitle>
           <ListCont>
-            {users.map((user, i) =>
-              <ItemDiv key={i}>
-                <ItemContL>
-                  <Text>{`First Name: ${user.firstname}`}</Text>
-                  <Text>{`Last Name: ${user.lastname}`}</Text>
-                  <Text>{`Username: ${user.username}`}</Text>
-                </ItemContL>
-                <Col>
-                  <Row>
-                    <Btn onClick={handleEditUser(user._id)}>Edit</Btn>
-                    <Btn onClick={handleRemoveUser(user._id)}>Remove</Btn>
-                  </Row>
+            <Query query={gql`
+            {
+              users{
+                name
+                email
+                role
+                id
+              }
+            }
+            `}>
+              {({loading, error, data}) => {
+                if (loading) return <Title> Loading . . .</Title>
+                if (error) return error
+
+                return data.users.map((user, i) =>
+                <ItemDiv key={i}>
+                  <ItemContL>
+                    <Text>{`Name: ${user.name}`}</Text>
+                    <Text>{`Email: ${user.email}`}</Text>
+                    <Text>{`Role: ${user.role}`}</Text>
+                  </ItemContL>
                   <Col>
-                    <CreateLink to="/admin/login/password/reset" ><BtnWide>Reset Password</BtnWide></CreateLink>
+                    <Row>
+                      <Btn onClick={handleEditUser(user.id)}>Edit</Btn>
+                      <Btn onClick={handleRemoveUser(user.id)}>Remove</Btn>
+                    </Row>
+                    <Col>
+                      <CreateLink to="/admin/login/password/reset" ><BtnWide>Reset Password</BtnWide></CreateLink>
+                    </Col>
                   </Col>
-                </Col>
-              </ItemDiv>
-            )}
+                </ItemDiv>
+              )
+              }}
+            </Query>
           </ListCont>
           <Col>
             <CreateLink to="/admin/login/create" ><Button>Create new user</Button></CreateLink>

@@ -1,7 +1,7 @@
 // premade packages
 import React, { useState, useEffect } from 'react';
 import gql from 'graphql-tag'
-import { Query } from 'react-apollo'
+import { Query, Mutation } from 'react-apollo'
 
 // project specific Components
 import styled from 'styled-components';
@@ -42,34 +42,37 @@ const SectionTitle = styled(Text)`
 `;
 
 
-function Shop({ showCart }) {
+function Shop({ showCart, guest }) {
   const [items, setItems] = useState([])
   const [cart, setCart] = useState([])
   // const [inStock, setInstock] = useState(true)
 
+
+  console.log(guest)
+
   const addItemToCart = ({ name, price, url, _id, stock }) => () => {
-    const item = { name, price, url, _id, stock }
-    addToCart(item)
-      .then(() => {
-        getCart().then((cart) => setCart(cart))
-      })
+    // const item = { name, price, url, _id, stock }
+    // addToCart(item)
+    //   .then(() => {
+    //     getCart().then((cart) => setCart(cart))
+    //   })
   }
 
   const removeItemFromCart = ({ _id }) => () => {
-    removeFromCart(_id)
-      .then(() => getCart().then((cart) => {
-        let item = cart.find(item => item._id === _id)
-        if (item.stock <= 0) { }
-        setCart(cart)
-      }))
+    // removeFromCart(_id)
+    //   .then(() => getCart().then((cart) => {
+    //     let item = cart.find(item => item._id === _id)
+    //     if (item.stock <= 0) { }
+    //     setCart(cart)
+    //   }))
   }
 
-  useEffect(() => {
-    getCart()
-      .then(cart => {
-        setCart(cart || [])
-      })
-  }, []);
+  // useEffect(() => {
+  //   getCart()
+  //     .then(cart => {
+  //       setCart(cart || [])
+  //     })
+  // }, []);
 
   return (
 
@@ -81,7 +84,7 @@ function Shop({ showCart }) {
             <Row>
               <Query query={gql`
                 {
-                  items{
+                  inventory{
                     name,
                     price,
                     imgUrl,
@@ -92,65 +95,51 @@ function Shop({ showCart }) {
                   if (loading) return <Title>Loading . . . </Title>
                   if (error) console.log(error)
 
-                  return data.items.map((item, i) => <ItemThumbnail key={i} item={item} func={() => addItemToCart(item)} />)
+                  return data.inventory.map((item, i) => <ItemThumbnail key={i} item={item} func={() => addItemToCart(item)} />)
                 }}
               </Query>
             </Row>
           </Col>
         </Store>
-        {showCart &&
+        {
+          showCart &&
           <Cart>
             <Col>
               <SectionTitle>Cart</SectionTitle>
               <Row>
-              <Query query={gql`
                 {
-                  items{
-                    name,
-                    price,
-                    imgUrl,
-                  }
-                }
-                `}>
-                {({ loading, error, data }) => {
-                  if (loading) return <Title>Loading . . . </Title>
-                  if (error) console.log(error)
+                  guest ?
+                    JSON.parse(sessionStorage.getItem('cart')).map((item, i) => <ItemThumbnail key={i} item={item} func={() => addItemToCart(item)} />)
+                    :
+                    <Query query={gql`
+                      {
+                        user{
+                          cart{
+                            item{
+                              name
+                              id
+                              imgUrl
+                              price
+                            }
+                            qty
+                          }
+                        }
+                      }
+                      `}>
+                      {({ loading, error, data }) => {
+                        if (loading) return <Title>Loading . . . </Title>
+                        if (error) console.log(error)
 
-                  return data.items.map((item, i) => <ItemThumbnail key={i} item={item} func={() => addItemToCart(item)} />)
-                }}
-              </Query>
+                        return data.user.cart.map((item, i) => <ItemThumbnail key={i} item={item.item} func={() => addItemToCart(item)} />)
+                      }}
+                    </Query>
+                }
               </Row>
             </Col>
           </Cart>
         }
       </MainCont>
     </Col>
-    // <Col>
-    //   <MainCont>
-    //     <Store>
-    //       <Col>
-    //         <SectionTitle>Store</SectionTitle>
-    //         <Row>
-    //           {items.map((item, i) => <ShopItemThumbnail key={i} item={item} func={() => addItemToCart(item)} />)}
-    //         </Row>
-    //       </Col>
-    //     </Store>
-    //     {showCart &&
-    //       <Cart>
-    //         <Col>
-    //           <SectionTitle>Cart</SectionTitle>
-    //           <Row>
-    //             {
-    //               cart.length ?
-    //               cart.map((item, i) => <CartItemThumbnail key={i} item={item} func={() => removeItemFromCart(item)} />)
-    //               : <Title>Nothing in your Cart</Title>
-    //             }
-    //           </Row>
-    //         </Col>
-    //       </Cart>
-    //     }
-    //   </MainCont>
-    // </Col>
   );
 }
 

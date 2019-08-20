@@ -24,8 +24,6 @@ import Title from './Components/Title';
 
 // project specific methods/functions
 
-
-
 const HeadBar = styled(Row)`
   justify-content: space-between;
   background-color: #133564;
@@ -46,16 +44,20 @@ const NavTitle = styled(Title)`
   cursor: pointer;
 `;
 
-function App() {
-  const [loggedIn, setLoggedIn] = useState(false)
-  const [cartView, setCartView] = useState(false)
 
 
 
-  useEffect(() => {
-    let user = JSON.parse(sessionStorage.getItem('user'))
-    user && setLoggedIn(true)
-  }, [loggedIn])
+function App({guest}) {
+  const [cartView, setCartView] = useState(true)
+
+
+  console.log(guest)
+
+
+  // useEffect(() => {
+  //   let user = JSON.parse(sessionStorage.getItem('user'))
+  //   user && setLoggedIn(true)
+  // }, [loggedIn])
 
   return (
     <Col>
@@ -68,7 +70,7 @@ function App() {
           </Row>
         </HeadBar>
         <Switch>
-          <Route exact path='/' render={() => <Shop showCart={cartView} />} />
+          <Route exact path='/' render={() => <Shop showCart={cartView} guest={guest} />} />
           <Route exact path='/admin' component={Admin} />
           <Route exact path='/admin/login' component={Login} />
           <Route path='/admin/login/create' component={Create} />
