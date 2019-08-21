@@ -1,13 +1,11 @@
 // premade packages
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
-  // BrowserRouter as Router,
   NavLink,
   Switch,
   Route,
 } from 'react-router-dom';
 import styled from 'styled-components';
-// import {ApolloProvider} from 'react-apollo'
 
 
 // project specific Components
@@ -47,36 +45,27 @@ const NavTitle = styled(Title)`
 
 
 
-function App({guest}) {
+function App() {
   const [cartView, setCartView] = useState(true)
-
-
-  console.log(guest)
-
-
-  // useEffect(() => {
-  //   let user = JSON.parse(sessionStorage.getItem('user'))
-  //   user && setLoggedIn(true)
-  // }, [loggedIn])
 
   return (
     <Col>
-        <HeadBar>
-          <NavTitleLink to='/' >Home</NavTitleLink>
-          <Row>
-            <NavTitle onClick={() => setCartView(!cartView)} >Cart</NavTitle>
-            <NavTitleLink to='/admin' >Admin</NavTitleLink>
-            {/* <NavTitle onClick={() => handleLoggout()} >Loggout</NavTitle> */}
-          </Row>
-        </HeadBar>
-        <Switch>
-          <Route exact path='/' render={() => <Shop showCart={cartView} guest={guest} />} />
-          <Route exact path='/admin' component={Admin} />
-          <Route exact path='/admin/login' component={Login} />
-          <Route path='/admin/login/create' component={Create} />
-          <Route path='/admin/login/password/reset' component={Reset} />
-          <Route exact path='/easter-eggs/tacos' component={Tacos} />
-        </Switch>
+      <HeadBar>
+        <NavTitleLink to='/' >Home</NavTitleLink>
+        <Row>
+          <NavTitle onClick={() => setCartView(!cartView)} >Cart</NavTitle>
+          <NavTitleLink to='/admin' >Admin</NavTitleLink>
+          {/* <NavTitle onClick={() => handleLoggout()} >Loggout</NavTitle> */}
+        </Row>
+      </HeadBar>
+      <Switch>
+        <Route exact path='/' render={() => <Shop showCart={cartView} />} />
+        <Route exact path='/admin' component={Admin} />
+        <Route exact path='/admin/login' component={Login} />
+        <Route path='/admin/login/create' component={Create} />
+        <Route path='/admin/login/password/reset' component={Reset} />
+        <Route exact path='/easter-eggs/tacos' component={Tacos} />
+      </Switch>
     </Col>
   );
 }

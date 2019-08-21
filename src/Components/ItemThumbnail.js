@@ -22,15 +22,16 @@ const ButtonDis = styled(Button)`
 `;
 
 
-export default function ItemThumbnail({ item: { name, price, imgUrl, _id, stock }, func }) {
+export default function ItemThumbnail({ item: { name, price, imgUrl, id, stock, qty }, func }) {
   return (
     <Thumbnail>
       <Col>
         <TextSmall>{`Name: ${name}`}</TextSmall>
         <TextSmall>{`Price: $${price}`}</TextSmall>
+        {qty > 0 && func.toString().includes('remove') && <TextSmall>{`Quantity: ${qty}`}</TextSmall>}
       </Col>
       <img style={{ width: 150, height: 150 }} src={imgUrl} alt='' />
-      {stock < 1 ? <ButtonDis disabled>Temporarily out of stock</ButtonDis> : <Button onClick={func(_id)}>Add to Cart</Button>}
+      {stock < 1 ? <ButtonDis disabled>Temporarily out of stock</ButtonDis> : func.toString().includes('remove') ?  <Button onClick={func()}>Remove from Cart</Button> : <Button onClick={func()}>Add to Cart</Button>}
     </Thumbnail>
   )
 }

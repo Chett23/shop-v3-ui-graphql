@@ -1,7 +1,10 @@
 // premade packages
 import React, { useState, useEffect } from 'react';
 import gql from 'graphql-tag'
-import { Query, Mutation } from 'react-apollo'
+import { useQuery, useMutation } from '@apollo/react-hooks'
+import Loader from 'react-loaders';
+
+
 
 // project specific Components
 import styled from 'styled-components';
@@ -12,7 +15,7 @@ import Title from '../Components/Title';
 import ItemThumbnail from '../Components/ItemThumbnail';
 
 // project specific methods/functions
-import { getCart, addToCart, removeFromCart } from '../Data/Cart';
+// import { getCart, removeFromCart } from '../Data/Cart';
 
 const MainCont = styled(Row)`
   width: 80%;
@@ -42,23 +45,92 @@ const SectionTitle = styled(Text)`
 `;
 
 
-function Shop({ showCart, guest }) {
-  const [items, setItems] = useState([])
-  const [cart, setCart] = useState([])
-  // const [inStock, setInstock] = useState(true)
+// graphql
+const GET_INVENTORY = gql`
+{
+  inventory{
+    name,
+    price,
+    imgUrl,
+    id
+  }
+}`
+
+const GET_CART = gql`
+{
+  user {
+    cart{
+      item{
+        name
+        id
+        imgUrl
+        price
+      }
+      qty
+    }
+  }
+}`
+
+const ADD_TO_CART = gql`
+  mutation addToCart($itemId: ID!, $qty: Int!, $status: Status!){
+    addToCart(itemId: $itemId, qty: $qty, status: $status){
+      item{
+        name
+      }
+      qty
+      status
+    }
+  }
+`
 
 
-  console.log(guest)
+function Shop({ showCart }) {
+  const { loading: inventoryLoading, error: inventoryError, data: { inventory } } = useQuery(GET_INVENTORY)
+  const { loading: userCartLoading, error: userCartError, data: { user } } = useQuery(GET_CART)
+  const [addToCart, { data, loading: addToCartLoading, error: addToCartError }] = useMutation(ADD_TO_CART)
+  const [guest, setGuest] = useState(false)
+  const [guestCart, setGuestCart] = useState([])
 
-  const addItemToCart = ({ name, price, url, _id, stock }) => () => {
-    // const item = { name, price, url, _id, stock }
-    // addToCart(item)
-    //   .then(() => {
-    //     getCart().then((cart) => setCart(cart))
-    //   })
+
+  const addItemToCart = (item) => () => {
+    if (guest) {
+      let index = guestCart.findIndex(el => el.id === item.id) 
+      let tempCart = guestCart
+      item['qty'] = (item['qty'] || 0) + 1 ;        
+      if(index >= 0) {
+        // item.qty = item.qty + 1
+        tempCart[index] = item
+        sessionStorage.setItem('guestCart', JSON.stringify(tempCart))
+        setGuestCart(JSON.parse(sessionStorage.getItem('guestCart')))
+      }else {
+        tempCart.push(item)
+        sessionStorage.setItem('guestCart', JSON.stringify(tempCart))
+        setGuestCart(JSON.parse(sessionStorage.getItem('guestCart')))
+      }
+    } else {
+      addToCart({ variable: { itemId: item.id, qty: item.qty, status: 'InCart' } })
+      console.log(data)
+    }
   }
 
-  const removeItemFromCart = ({ _id }) => () => {
+  const removeItemFromCart = (id) => () => {
+    if (guest) {
+      let tempCart = guestCart
+      if(guestCart[id].qty > 1) {
+        tempCart[id]['qty'] = tempCart[id]['qty'] -1;
+        sessionStorage.setItem('guestCart', JSON.stringify(tempCart))
+        setGuestCart(JSON.parse(sessionStorage.getItem('guestCart')))
+      }else {
+        let spliced = tempCart.splice(id-1,0)
+        console.log(spliced)
+        sessionStorage.setItem('guestCart', JSON.stringify(tempCart))
+        setGuestCart(JSON.parse(sessionStorage.getItem('guestCart')))
+      }
+    } else {
+      // addToCart({ variable: { itemId: item.id, qty: item.qty, status: 'InCart' } })
+    }
+
+
     // removeFromCart(_id)
     //   .then(() => getCart().then((cart) => {
     //     let item = cart.find(item => item._id === _id)
@@ -67,12 +139,22 @@ function Shop({ showCart, guest }) {
     //   }))
   }
 
-  // useEffect(() => {
-  //   getCart()
-  //     .then(cart => {
-  //       setCart(cart || [])
-  //     })
-  // }, []);
+
+  useEffect(() => {
+    let user = JSON.parse(sessionStorage.getItem('userData')) || 'guest';
+    user === 'guest' && setGuest(true)
+    setGuestCart(JSON.parse(sessionStorage.getItem('guestCart')) || [])
+  }, []);
+
+
+  if (addToCartLoading) return <Loader type='ball-clip-rotate' />
+  if (addToCartError) console.log(addToCartError)
+
+  if (inventoryLoading) return <Loader type='ball-clip-rotate' />
+  if (inventoryError) console.log(inventoryError)
+
+  if (userCartLoading) return <Loader type='ball-clip-rotate' />
+  if (userCartError) console.log(userCartError)
 
   return (
 
@@ -82,22 +164,7 @@ function Shop({ showCart, guest }) {
           <Col>
             <SectionTitle>Store</SectionTitle>
             <Row>
-              <Query query={gql`
-                {
-                  inventory{
-                    name,
-                    price,
-                    imgUrl,
-                  }
-                }
-                `}>
-                {({ loading, error, data }) => {
-                  if (loading) return <Title>Loading . . . </Title>
-                  if (error) console.log(error)
-
-                  return data.inventory.map((item, i) => <ItemThumbnail key={i} item={item} func={() => addItemToCart(item)} />)
-                }}
-              </Query>
+              {inventory.map((item, i) => <ItemThumbnail key={i} item={item} func={() => addItemToCart(item)} />)}
             </Row>
           </Col>
         </Store>
@@ -109,30 +176,9 @@ function Shop({ showCart, guest }) {
               <Row>
                 {
                   guest ?
-                    JSON.parse(sessionStorage.getItem('cart')).map((item, i) => <ItemThumbnail key={i} item={item} func={() => addItemToCart(item)} />)
-                    :
-                    <Query query={gql`
-                      {
-                        user{
-                          cart{
-                            item{
-                              name
-                              id
-                              imgUrl
-                              price
-                            }
-                            qty
-                          }
-                        }
-                      }
-                      `}>
-                      {({ loading, error, data }) => {
-                        if (loading) return <Title>Loading . . . </Title>
-                        if (error) console.log(error)
-
-                        return data.user.cart.map((item, i) => <ItemThumbnail key={i} item={item.item} func={() => addItemToCart(item)} />)
-                      }}
-                    </Query>
+                  guestCart.length > 0 ? guestCart.map((item, i) => <ItemThumbnail key={i} item={item} func={() => removeItemFromCart(i)} />) : <Title>Nothing in your cart</Title>
+                  :
+                  user.cart.length > 0 ? user.cart.map((item, i) => <ItemThumbnail key={i} item={item.item} func={() => removeItemFromCart(item.id)} />) : <Title>Nothing in your cart</Title>
                 }
               </Row>
             </Col>

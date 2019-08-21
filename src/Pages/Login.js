@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { Link, Redirect } from 'react-router-dom';
 import { useMutation } from '@apollo/react-hooks';
+import Loader from 'react-loaders';
 import gql from 'graphql-tag'
 
 // Project Specific Components
@@ -113,50 +114,16 @@ export default function Login({ loggedIn }) {
   const [login, { data, loading: loginLoading, error: loginError }] = useMutation(LOGIN)
 
 
-  async function handleSubmit(e) {
+  function handleSubmit(e) {
     e.preventDefault();
-
-    await login({ variables: { email: usrname, password: password } })
-    data && sessionStorage.setItem('userData', JSON.stringify(data.login))
-    data && setUser(data.login.token)
+    login({ variables: { email: usrname, password: password } })
   }
-
+  
   useEffect(() => {
+    data && sessionStorage.setItem('userData', JSON.stringify(data.login))
     let user = JSON.parse(sessionStorage.getItem('userData'))
     user && setUser(user)
-  }, [])
-
-
-  if (loginError) {
-    console.log(loginError)
-    return <form onSubmit={handleSubmit}>
-    <MainCont>
-      <LoginTitle>Admin Login</LoginTitle>
-      <ErrorMsg>Failed to Login</ErrorMsg>
-      <LoginRow><LoginText>Username: </LoginText><LoginInput type={'text'} onChange={(e) => setUsrname(e.target.value)} onClick={() => { setUsrname('') }} value={usrname} placeholder="username . . ."></LoginInput></LoginRow>
-      <LoginRow><LoginText>Password: </LoginText><LoginInput type={'password'} onChange={(e) => setPassword(e.target.value)} onClick={() => { setPassword('') }} value={password} placeholder="password . . ."></LoginInput></LoginRow>
-      <Row>
-        <LoginButton onClick={handleSubmit} type={'submit'}><ButtonText>Submit</ButtonText></LoginButton>
-        <LoginButton><LoginLink to='/admin/login/create'><ButtonText>Create User</ButtonText></LoginLink></LoginButton>
-      </Row>
-    </MainCont>
-  </form>
-  }
-
-  if (loginLoading) {
-    return <form onSubmit={handleSubmit}>
-      <MainCont>
-        <LoginTitle>Admin Login</LoginTitle>
-        <Title>Loading . . . </Title>
-        <LoginRow><LoginText>Username: </LoginText><LoginInput type={'text'} onChange={(e) => setUsrname(e.target.value)} onClick={() => { setUsrname('') }} value={usrname} placeholder="username . . ."></LoginInput></LoginRow>
-        <LoginRow><LoginText>Password: </LoginText><LoginInput type={'password'} onChange={(e) => setPassword(e.target.value)} onClick={() => { setPassword('') }} value={password} placeholder="password . . ."></LoginInput></LoginRow>
-        <Row>
-          <LoginButton onClick={handleSubmit} type={'submit'}><ButtonText>Submit</ButtonText></LoginButton>
-          <LoginButton><LoginLink to='/admin/login/create'><ButtonText>Create User</ButtonText></LoginLink></LoginButton>
-        </Row>
-      </MainCont>
-    </form>
-  }
+  }, [data])
 
   return (
 
@@ -166,6 +133,7 @@ export default function Login({ loggedIn }) {
       <form onSubmit={handleSubmit}>
         <MainCont>
           <LoginTitle>Admin Login</LoginTitle>
+          {loginLoading && <Loader type='ball-clip-rotate' />}
           {loginError && <ErrorMsg>Failed to Login</ErrorMsg>}
           <LoginRow><LoginText>Username: </LoginText><LoginInput type={'text'} onChange={(e) => setUsrname(e.target.value)} onClick={() => { setUsrname('') }} value={usrname} placeholder="username . . ."></LoginInput></LoginRow>
           <LoginRow><LoginText>Password: </LoginText><LoginInput type={'password'} onChange={(e) => setPassword(e.target.value)} onClick={() => { setPassword('') }} value={password} placeholder="password . . ."></LoginInput></LoginRow>

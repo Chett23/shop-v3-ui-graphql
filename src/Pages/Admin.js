@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Redirect, Link } from 'react-router-dom';
 import styled from 'styled-components';
+import {client} from '../index';
 
 import Row from '../Components/Row';
 import Col from '../Components/Col';
@@ -117,7 +118,7 @@ const LoggoutButton = styled(Button)`
 
 export default function Admin({ loggedIn }) {
   //state items for Items/inventory
-  const [items, setItems] = useState([]);
+  const [, setItems] = useState([]);
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [url, setUrl] = useState('');
@@ -129,7 +130,7 @@ export default function Admin({ loggedIn }) {
   const [fname, setFname] = useState('');
   const [lname, setLname] = useState('');
   const [userName, setUserName] = useState('');
-  const [users, setUsers] = useState([]);
+  const [, setUsers] = useState([]);
   const [editUserId, setEditUserId] = useState('');
   const [user, setUser] = useState('');
   const [loading, setLoading] = useState(true);
@@ -167,9 +168,10 @@ export default function Admin({ loggedIn }) {
   }
 
   const handleLoggout = () => {
-    sessionStorage.removeItem('userToken')
+    sessionStorage.removeItem('userData')
     setLoading(false)
     setUser('')
+    client.resetStore()
   }
 
   const handleEdit = (id) => () => {
@@ -214,7 +216,7 @@ export default function Admin({ loggedIn }) {
   }
 
   useEffect(() => {
-    let user = sessionStorage.getItem('userToken')
+    let user = sessionStorage.getItem('userData')
     if (user) {
       setUser(user);
       setLoading(false)
@@ -325,7 +327,7 @@ export default function Admin({ loggedIn }) {
           <ListCont>
             <Query query={gql`
             {
-              users{
+              admins{
                 name
                 email
                 role
@@ -337,7 +339,7 @@ export default function Admin({ loggedIn }) {
                 if (loading) return <Title> Loading . . .</Title>
                 if (error) return error
 
-                return data.users.map((user, i) =>
+                return data.admins.map((user, i) =>
                 <ItemDiv key={i}>
                   <ItemContL>
                     <Text>{`Name: ${user.name}`}</Text>

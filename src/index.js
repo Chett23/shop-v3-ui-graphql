@@ -11,32 +11,27 @@ import {
   Dev
 } from './Data/ApiURL';
 import App from './App';
-import './index.css'
+import './index.scss'
 import * as serviceWorker from './serviceWorker';
 
-let guest = false;
+
 
 const httpLink = createHttpLink({
   uri: Dev
 });
 
-const authLink = setContext((_, {headers}) => {
-  const {token} = JSON.parse(sessionStorage.getItem('userData'));
-  console.log(token)
-  if(token === 'GuestUser') { guest = true}
-
-  console.log(guest)
-
+const authLink = setContext((_, { headers }) => {
+  const user = JSON.parse(sessionStorage.getItem('userData'));
   return {
     headers: {
       ...headers,
-      authorization: token ? `Bearer ${token}` : ""
+      authorization: user ? `Bearer ${user.token}` : ""
     }
   }
 })
 
 
-const client = new ApolloClient({
+export const client = new ApolloClient({
   link: authLink.concat(httpLink),
   cache: new InMemoryCache()
 })
@@ -44,7 +39,7 @@ const client = new ApolloClient({
 ReactDOM.render(
   <ApolloProvider client={client}>
     <Router>
-      <App  guest={guest} />
+      <App />
     </Router>
   </ApolloProvider>
   , document.getElementById('root'));
