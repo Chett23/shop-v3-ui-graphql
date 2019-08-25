@@ -46,7 +46,7 @@ const NavTitle = styled(Title)`
 
 
 function App() {
-  const [cartView, setCartView] = useState(true)
+  const [cartView, setCartView] = useState(false)
 
   return (
     <Col>

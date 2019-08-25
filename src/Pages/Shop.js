@@ -94,18 +94,18 @@ function Shop({ showCart }) {
 
   const addItemToCart = (item) => () => {
     if (guest) {
-      let index = guestCart.findIndex(el => el.id === item.id) 
-      let tempCart = guestCart
-      item['qty'] = (item['qty'] || 0) + 1 ;        
+      let tempCart = JSON.parse(sessionStorage.getItem('guestCart'))
+      let index = tempCart.findIndex(el => el.id === item.id) 
       if(index >= 0) {
-        // item.qty = item.qty + 1
+        item.qty = (tempCart[index].qty || 0) + 1 ;        
         tempCart[index] = item
         sessionStorage.setItem('guestCart', JSON.stringify(tempCart))
-        setGuestCart(JSON.parse(sessionStorage.getItem('guestCart')))
+        setGuestCart(tempCart)
       }else {
+        item.qty = 1;
         tempCart.push(item)
         sessionStorage.setItem('guestCart', JSON.stringify(tempCart))
-        setGuestCart(JSON.parse(sessionStorage.getItem('guestCart')))
+        setGuestCart(tempCart)
       }
     } else {
       addToCart({ variable: { itemId: item.id, qty: item.qty, status: 'InCart' } })
@@ -115,36 +115,29 @@ function Shop({ showCart }) {
 
   const removeItemFromCart = (id) => () => {
     if (guest) {
-      let tempCart = guestCart
-      if(guestCart[id].qty > 1) {
+      let tempCart = JSON.parse(sessionStorage.getItem('guestCart'))
+      if(tempCart[id].qty > 1) {
         tempCart[id]['qty'] = tempCart[id]['qty'] -1;
         sessionStorage.setItem('guestCart', JSON.stringify(tempCart))
-        setGuestCart(JSON.parse(sessionStorage.getItem('guestCart')))
+        setGuestCart(tempCart)
       }else {
-        let spliced = tempCart.splice(id-1,0)
+        let spliced = tempCart.slice(id, 1)
+        console.log(tempCart)
         console.log(spliced)
         sessionStorage.setItem('guestCart', JSON.stringify(tempCart))
-        setGuestCart(JSON.parse(sessionStorage.getItem('guestCart')))
+        setGuestCart(tempCart)
       }
     } else {
       // addToCart({ variable: { itemId: item.id, qty: item.qty, status: 'InCart' } })
     }
-
-
-    // removeFromCart(_id)
-    //   .then(() => getCart().then((cart) => {
-    //     let item = cart.find(item => item._id === _id)
-    //     if (item.stock <= 0) { }
-    //     setCart(cart)
-    //   }))
   }
 
 
   useEffect(() => {
     let user = JSON.parse(sessionStorage.getItem('userData')) || 'guest';
     user === 'guest' && setGuest(true)
-    setGuestCart(JSON.parse(sessionStorage.getItem('guestCart')) || [])
-  }, []);
+    guest && setGuestCart(JSON.parse(sessionStorage.getItem('guestCart')) || [])
+  }, [guestCart, guest]);
 
 
   if (addToCartLoading) return <Loader type='ball-clip-rotate' />
@@ -178,7 +171,7 @@ function Shop({ showCart }) {
                   guest ?
                   guestCart.length > 0 ? guestCart.map((item, i) => <ItemThumbnail key={i} item={item} func={() => removeItemFromCart(i)} />) : <Title>Nothing in your cart</Title>
                   :
-                  user.cart.length > 0 ? user.cart.map((item, i) => <ItemThumbnail key={i} item={item.item} func={() => removeItemFromCart(item.id)} />) : <Title>Nothing in your cart</Title>
+                  user.cart.length > 0 ? user.cart.map((order, i) => <ItemThumbnail key={i} item={order.item} func={() => removeItemFromCart(order.id)} />) : <Title>Nothing in your cart</Title>
                 }
               </Row>
             </Col>
