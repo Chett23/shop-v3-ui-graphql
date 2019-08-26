@@ -94,7 +94,7 @@ function Shop({ showCart }) {
 
   const addItemToCart = (item) => () => {
     if (guest) {
-      let tempCart = JSON.parse(sessionStorage.getItem('guestCart'))
+      let tempCart = JSON.parse(sessionStorage.getItem('guestCart')) || []
       let index = tempCart.findIndex(el => el.id === item.id) 
       if(index >= 0) {
         item.qty = (tempCart[index].qty || 0) + 1 ;        
@@ -108,6 +108,7 @@ function Shop({ showCart }) {
         setGuestCart(tempCart)
       }
     } else {
+       
       addToCart({ variable: { itemId: item.id, qty: item.qty, status: 'InCart' } })
       console.log(data)
     }
@@ -115,15 +116,14 @@ function Shop({ showCart }) {
 
   const removeItemFromCart = (id) => () => {
     if (guest) {
-      let tempCart = JSON.parse(sessionStorage.getItem('guestCart'))
+      let tempCart = JSON.parse(sessionStorage.getItem('guestCart')) || []
       if(tempCart[id].qty > 1) {
         tempCart[id]['qty'] = tempCart[id]['qty'] -1;
         sessionStorage.setItem('guestCart', JSON.stringify(tempCart))
         setGuestCart(tempCart)
       }else {
-        let spliced = tempCart.slice(id, 1)
-        console.log(tempCart)
-        console.log(spliced)
+        console.log(id)
+        tempCart.splice(id, 1)
         sessionStorage.setItem('guestCart', JSON.stringify(tempCart))
         setGuestCart(tempCart)
       }
