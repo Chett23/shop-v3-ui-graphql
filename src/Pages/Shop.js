@@ -108,8 +108,8 @@ function Shop({ showCart }) {
         setGuestCart(tempCart)
       }
     } else {
-       
-      addToCart({ variable: { itemId: item.id, qty: item.qty, status: 'InCart' } })
+      console.log({ variables: { itemId: item.id, qty: item.qty, status: 'InCart' } })
+      addToCart({ variables: { itemId: item.id, qty: item.qty} })
       console.log(data)
     }
   }
@@ -134,10 +134,10 @@ function Shop({ showCart }) {
 
 
   useEffect(() => {
-    let user = JSON.parse(sessionStorage.getItem('userData')) || 'guest';
+    let user = JSON.parse(sessionStorage.getItem('userData')) || 'guest'
     user === 'guest' && setGuest(true)
     guest && setGuestCart(JSON.parse(sessionStorage.getItem('guestCart')) || [])
-  }, [guestCart, guest]);
+  }, [guestCart, guest, user]);
 
 
   if (addToCartLoading) return <Loader type='ball-clip-rotate' />
