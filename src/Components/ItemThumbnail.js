@@ -28,6 +28,7 @@ export default function ItemThumbnail({ item: { name, price, imgUrl, id, stock, 
       <Col>
         <TextSmall>{`Name: ${name}`}</TextSmall>
         <TextSmall>{`Price: $${price}`}</TextSmall>
+        <TextSmall>{`qty: ${qty}`}</TextSmall>
         {qty > 0 && func.toString().includes('remove') && <TextSmall>{`Quantity: ${qty}`}</TextSmall>}
       </Col>
       <img style={{ width: 150, height: 150 }} src={imgUrl} alt='' />
