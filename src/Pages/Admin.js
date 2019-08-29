@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Redirect, Link } from 'react-router-dom';
 import styled from 'styled-components';
-import {client} from '../index';
+import Loader from 'react-loaders';
+import { client } from '../index';
 
 import Row from '../Components/Row';
 import Col from '../Components/Col';
@@ -9,9 +10,9 @@ import Text from '../Components/Text';
 import Title from '../Components/Title';
 import Button from '../Components/Button';
 
-import {getItems, addToInventory, RemoveFromInventory} from '../Data/items';
+import { getItems, addToInventory, RemoveFromInventory } from '../Data/items';
 import { getUsers, RemoveUser, createUser } from '../Data/User';
-import { Query } from 'react-apollo';
+import { useQuery, useLazyQuery, useMutation } from '@apollo/react-hooks'
 import gql from 'graphql-tag';
 
 
@@ -25,6 +26,7 @@ const AdminFormCont = styled(Col)`
   margin: 2% auto;
   padding: 20px;
   width: 45%;
+  position: relative;
   height: 300px;
   border-radius: 15px;
   box-shadow: 0px 0px 5px grey;
@@ -114,6 +116,56 @@ const LoggoutButton = styled(Button)`
   border-radius: 0;
   font-weight: bold;
 `;
+const LoaderBackground = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background-color: #909090;
+  opacity: 0.3;
+  margin: 0 auto;
+  border-radius: 15px;
+`;
+
+
+
+
+//Graphql
+const GET_INVENTORY_INFO = gql`
+  {
+    inventory{
+      name
+      price
+      id
+      stock
+    }
+  }
+`
+const GET_ITEM_INFO = gql`
+  query getItem($id: ID!){
+    item(id: $id){
+      name
+      price
+      imgUrl
+      id
+      stock
+    }
+  }
+`
+const GET_ADMINS = gql`
+  {
+    admins{
+      name
+      email
+      role
+      id
+    }
+  }
+`
 
 
 export default function Admin({ loggedIn }) {
@@ -134,6 +186,11 @@ export default function Admin({ loggedIn }) {
   const [editUserId, setEditUserId] = useState('');
   const [user, setUser] = useState('');
   const [loading, setLoading] = useState(true);
+
+  //graphql
+  const { loading: inventoryLoading, error: inventoryError, data: { inventory } } = useQuery(GET_INVENTORY_INFO)
+  const [getItem, { called: itemCalled, loading: itemLoading, data:  itemData  }] = useLazyQuery(GET_ITEM_INFO)
+  const { loading: adminsLoading, error: adminsError, data: { admins } } = useQuery(GET_ADMINS)
 
   const handleChange = (e) => {
     if (e.target.name === 'setName') { setName(e.target.value) }
@@ -175,25 +232,21 @@ export default function Admin({ loggedIn }) {
   }
 
   const handleEdit = (id) => () => {
-    getItems()
-      .then((items) => {
-        const item = items.find(item => item._id === id)
-        setName(item.name)
-        setPrice(item.price)
-        setUrl(item.url)
-        setStock(item.stock)
-        setEditId(item._id)
-        setFname('');
-        setLname('');
-        setUserName('');
-        setEditUserId('');
-      })
+    getItem({ variables: { id } })
+    if (itemData) {
+      setEditId(itemData.item.id)
+      setName(itemData.item.name)
+      setPrice(itemData.item.price)
+      setUrl(itemData.item.imgUrl)
+      setStock(itemData.item.stock)
+    }
   }
 
   const handleRemove = (id) => () => {
     RemoveFromInventory(id)
       .then(() => getUsers().then(inventory => setUsers(inventory)))
   }
+
   const handleEditUser = (id) => () => {
     getUsers()
       .then((users) => {
@@ -228,6 +281,12 @@ export default function Admin({ loggedIn }) {
     // loggedIn || setLoading(false)
   }, []);
 
+
+  if (inventoryLoading) return <Loader type='ball-clip-rotate' />
+  if (inventoryError) return inventoryError
+  if (adminsLoading) return <Loader type='ball-clip-rotate' />
+  if (adminsError) return adminsError
+
   return (loading || user ?
     <React.Fragment>
       <LoggoutButton onClick={handleLoggout} >Loggout</LoggoutButton>
@@ -250,12 +309,13 @@ export default function Admin({ loggedIn }) {
               </AdminFormRow>
               <AdminFormRow>
                 <FormBtn onClick={onSubmit} >Submit Changes</FormBtn>
-                <FormBtn onClick={() => { setEditUserId(''); setFname(''); setLname(''); setUserName('') }}>Add Item</FormBtn>
+                <FormBtn onClick={() => { setEditUserId(''); setFname(''); setLname(''); setUserName('') }}>Go Back</FormBtn>
               </AdminFormRow>
             </AdminFormCont>
             :
             <AdminFormCont>
               {editId ? <AdminFormTitle>Edit Item In Inventory</AdminFormTitle> : <AdminFormTitle>Add Item To Inventory</AdminFormTitle>}
+              {(itemCalled && itemLoading) && <LoaderBackground><Loader type='ball-clip-rotate' /></LoaderBackground>}
               <AdminFormRow>
                 <AdminFormText>Name: </AdminFormText>
                 <AdminFormInput placeholder={'Please enter item name. . . '} name={'setName'} value={name} onChange={handleChange} />
@@ -277,7 +337,7 @@ export default function Admin({ loggedIn }) {
                   editId ?
                     <React.Fragment>
                       <FormBtn onClick={onSubmit} >Submit Changes</FormBtn>
-                      <FormBtn onClick={() => { setEditId(''); setName(''); setPrice(''); setStock(''); setUrl('') }}>Add Item</FormBtn>
+                      <FormBtn onClick={() => { setEditId(''); setName(''); setPrice(''); setStock(''); setUrl('') }}>Go Back</FormBtn>
                     </React.Fragment>
                     :
                     <Button onClick={onSubmit} >Add Item to Inventory</Button>
@@ -288,22 +348,9 @@ export default function Admin({ loggedIn }) {
         <Cont>
           <AdminFormTitle>Current Inventory</AdminFormTitle>
           <ListCont>
-            <Query query={gql`
             {
-              inventory{
-                name
-                price
-                id
-                stock
-              }
-            }
-            `}>
-              {({ loading, error, data }) => {
-                if (loading) return <Title>loading . . .</Title>
-                if (error) return error
-
-                return data.inventory.map((item, i) =>
-                <ItemDiv key={i}>
+              inventory.map((item, i) => {
+                return <ItemDiv key={i}>
                   <ItemContL>
                     <Text>{`Name: ${item.name}`}</Text>
                     <Text>{`Price: ${item.price}`}</Text>
@@ -317,30 +364,16 @@ export default function Admin({ loggedIn }) {
                     <Btn onClick={handleRemove(item.id)}>Remove</Btn>
                   </ItemContR>
                 </ItemDiv>
-              )
-              }}
-            </Query>
+              })
+            }
           </ListCont>
         </Cont>
         <Cont>
           <AdminFormTitle>Current Admins</AdminFormTitle>
           <ListCont>
-            <Query query={gql`
             {
-              admins{
-                name
-                email
-                role
-                id
-              }
-            }
-            `}>
-              {({loading, error, data}) => {
-                if (loading) return <Title> Loading . . .</Title>
-                if (error) return error
-
-                return data.admins.map((user, i) =>
-                <ItemDiv key={i}>
+              admins.map((user, i) => {
+                return <ItemDiv key={i}>
                   <ItemContL>
                     <Text>{`Name: ${user.name}`}</Text>
                     <Text>{`Email: ${user.email}`}</Text>
@@ -356,16 +389,15 @@ export default function Admin({ loggedIn }) {
                     </Col>
                   </Col>
                 </ItemDiv>
-              )
-              }}
-            </Query>
+              })
+            }
           </ListCont>
           <Col>
             <CreateLink to="/admin/login/create" ><Button>Create new user</Button></CreateLink>
           </Col>
         </Cont>
       </MainCont>
-    </React.Fragment>
+    </React.Fragment >
     :
     <Redirect to='/admin/login' />
   )
